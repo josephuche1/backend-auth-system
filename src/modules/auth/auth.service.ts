@@ -41,8 +41,16 @@ export const registerUser = async (
     },
   });
 
+  const safeUser = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+
   return {
-    user,
+    user: safeUser,
     accessToken,
     refreshToken,
   };
@@ -80,8 +88,16 @@ export const loginUser = async (
     },
   });
 
+  const safeUser = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+
   return {
-    user,
+    user: safeUser,
     accessToken,
     refreshToken,
   };
