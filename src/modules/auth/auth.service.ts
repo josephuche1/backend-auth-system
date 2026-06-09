@@ -4,6 +4,10 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utils/jwt";
+import jwt from "jsonwebtoken";
+
+
+const JWT_SECRET = process.env.JWT_SECRET as string
 
 export const registerUser = async (
   username: string,
@@ -100,5 +104,35 @@ export const loginUser = async (
     user: safeUser,
     accessToken,
     refreshToken,
+  };
+};
+
+export const refreshAccessToken = async (token: string) => {
+  let decoded: { userId: string };
+
+  try {
+    decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+  } catch {
+    throw new Error("Invalid Token");
+  }
+
+  const refreshToken = await prisma.refreshToken.findUnique({
+    where: { token },
+  });
+
+  if (!refreshToken) {
+    throw new Error("Unauthenticated");
+  }
+
+  const now = new Date();
+
+  if (refreshToken.expiresAt < now) {
+    throw new Error("Refresh Token Expired - please login again");
+  }
+
+  const accessToken = generateAccessToken(decoded.userId);
+
+  return {
+    accessToken,
   };
 };
