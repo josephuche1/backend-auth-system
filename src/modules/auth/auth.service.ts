@@ -136,3 +136,19 @@ export const refreshAccessToken = async (token: string) => {
     accessToken,
   };
 };
+
+export const logoutUser = async (token: string) => {
+  const refreshToken = await prisma.refreshToken.findUnique({
+    where: { token },
+  });
+
+  if (!refreshToken) {
+    throw new Error("Token not found");
+  }
+
+  await prisma.refreshToken.delete({
+    where: { token },
+  });
+
+  return { message: "Logged out successfully" };
+};
