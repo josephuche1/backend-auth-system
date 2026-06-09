@@ -15,7 +15,6 @@ export const authMiddleware = (
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    console.log("authHeader:", authHeader); // Debugging line
 
     if (!authHeader) {
       return res.status(401).json({ message: "No token provided" });
