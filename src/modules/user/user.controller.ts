@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import prisma from "../../config/db";
 import { AuthRequest } from "../../middleware/auth.middleware";
 
@@ -31,3 +31,9 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  const users = await prisma.user.findMany();
+
+  res.json(users);
+}

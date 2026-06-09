@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 // extend Request type to include userId
 export interface AuthRequest extends Request {
   userId?: string;
+  role?: string;
 }
 
 export const authMiddleware = (
@@ -27,9 +28,13 @@ export const authMiddleware = (
       return res.status(401).json({ message: "Invalid token format" });
     }
 
-    const decoded = verifyToken(token) as { userId: string };
+    const decoded = verifyToken(token) as { 
+      userId: string; 
+      role: string;
+    };
 
     req.userId = decoded.userId;
+    req.role = decoded.role;
 
     next();
   } catch (error) {

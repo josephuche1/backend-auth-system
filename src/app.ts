@@ -14,10 +14,6 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 
-app.get("/auth/register", (req, res) => {
-  res.json({ message: "Register endpoint" });
-});
-
 app.get("/", (req, res) => {
   res.json({ message: "Backend API running 🚀" });
 });

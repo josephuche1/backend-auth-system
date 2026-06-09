@@ -34,8 +34,8 @@ export const registerUser = async (
     },
   });
 
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
+  const accessToken = generateAccessToken(user.id, user.role);
+  const refreshToken = generateRefreshToken(user.id, user.role);
 
   await prisma.refreshToken.create({
     data: {
@@ -81,8 +81,8 @@ export const loginUser = async (
     throw new Error("Invalid credentials");
   }
 
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
+  const accessToken = generateAccessToken(user.id, user.role);
+  const refreshToken = generateRefreshToken(user.id, user.role);
 
   await prisma.refreshToken.create({
     data: {
@@ -108,10 +108,13 @@ export const loginUser = async (
 };
 
 export const refreshAccessToken = async (token: string) => {
-  let decoded: { userId: string };
+  let decoded: { userId: string; role: string };
 
   try {
-    decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    decoded = jwt.verify(token, JWT_SECRET) as { 
+      userId: string;
+      role: string;
+    };
   } catch {
     throw new Error("Invalid Token");
   }
@@ -130,7 +133,7 @@ export const refreshAccessToken = async (token: string) => {
     throw new Error("Refresh Token Expired - please login again");
   }
 
-  const accessToken = generateAccessToken(decoded.userId);
+  const accessToken = generateAccessToken(decoded.userId, decoded.role);
 
   return {
     accessToken,
