@@ -1,6 +1,6 @@
 import prisma from "../../config/db";
 import { hashPassword, comparePassword } from "../../utils/password";
-import { AppError, ConflictError, NotFoundError, UnauthorizedError } from "../../errors/AppError";
+import { ConflictError, NotFoundError, UnauthorizedError } from "../../errors/AppError";
 import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
 import jwt from "jsonwebtoken";
 
