@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { registerUser, loginUser, refreshAccessToken, logoutUser } from "./auth.service";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { AppError, NotFoundError } from "../../errors/AppError";
+import { sendSuccess } from "../../utils/apiResponse";
 
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
@@ -9,7 +10,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await registerUser(username, email, password);
 
-  res.json(result);
+  return sendSuccess(res, result);
 })
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
@@ -17,7 +18,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await loginUser(email, password);
 
-  res.json(result);
+  return sendSuccess(res, result);
 
 })
 
@@ -26,7 +27,7 @@ export const refresh = asyncHandler(async (req:Request, res: Response) => {
 
   const result = await refreshAccessToken(token);
 
-  res.status(200).json(result);
+  return sendSuccess(res, result);
 })
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
@@ -34,6 +35,6 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await logoutUser(refreshToken);
 
-  res.status(200).json(result);
+  return sendSuccess(res, result);
 
 })

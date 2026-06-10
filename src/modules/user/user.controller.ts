@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import prisma from "../../config/db";
 import { AuthRequest } from "../../middleware/auth.middleware";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { sendSuccess } from "../../utils/apiResponse";
 
 export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.userId) {
@@ -32,5 +33,5 @@ export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
 export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await prisma.user.findMany();
 
-  res.json(users);
+  return sendSuccess(res, users);
 })
