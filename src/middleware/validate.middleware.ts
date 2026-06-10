@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
+import { BadRequestError } from "../errors/AppError";
 
 export const validate =
   (schema: ZodSchema) =>
@@ -8,9 +9,6 @@ export const validate =
       schema.parse(req.body);
       next();
     } catch (error: any) {
-      return res.status(400).json({
-        message: "Validation failed",
-        errors: error.errors,
-      });
+      throw new BadRequestError("Validation Failed");
     }
   };

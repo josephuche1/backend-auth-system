@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import {verifyToken} from "../utils/jwt";
+import { UnauthorizedError } from "../errors/AppError";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -18,14 +19,14 @@ export const authMiddleware = (
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({ message: "No token provided" });
+      throw new UnauthorizedError("No token provided")
     }
 
     // format: "Bearer token"
     const token = authHeader.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "Invalid token format" });
+      throw new UnauthorizedError("Invalid token format");
     }
 
     const decoded = verifyToken(token) as { 
@@ -38,6 +39,6 @@ export const authMiddleware = (
 
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Unauthorized" });
+    throw new UnauthorizedError("Unauthorized");
   }
 };

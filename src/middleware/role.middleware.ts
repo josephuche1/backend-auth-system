@@ -1,14 +1,15 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "./auth.middleware";
+import { ForbiddenError, UnauthorizedError } from "../errors/AppError";
 
 export const requireRole = (role: string) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.role) {
-      return res.status(401).json({ message: "Unauthorized" });
+      throw new UnauthorizedError("Unauthorized");
     }
 
     if (req.role !== role) {
-      return res.status(403).json({ message: "Forbidden" });
+      throw new ForbiddenError("Forbidden");
     }
 
     next();
