@@ -1,5 +1,6 @@
 import prisma from "../../config/db";
 import { hashPassword, comparePassword } from "../../utils/password";
+import { AppError, ConflictError, NotFoundError, UnauthorizedError } from "../../errors/AppError";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -21,7 +22,7 @@ export const registerUser = async (
   });
 
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new ConflictError("User already exists");
   }
 
   const hashedPassword = await hashPassword(password);
@@ -69,7 +70,7 @@ export const loginUser = async (
   });
 
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new NotFoundError("User not found.")
   }
 
   const isValid = await comparePassword(
@@ -78,7 +79,7 @@ export const loginUser = async (
   );
 
   if (!isValid) {
-    throw new Error("Invalid credentials");
+    throw new UnauthorizedError("Invalid credentials");
   }
 
   const accessToken = generateAccessToken(user.id, user.role);
@@ -116,7 +117,7 @@ export const refreshAccessToken = async (token: string) => {
       role: string;
     };
   } catch {
-    throw new Error("Invalid Token");
+    throw new UnauthorizedError("Invalid Token");
   }
 
   const refreshToken = await prisma.refreshToken.findUnique({
@@ -124,13 +125,13 @@ export const refreshAccessToken = async (token: string) => {
   });
 
   if (!refreshToken) {
-    throw new Error("Unauthenticated");
+    throw new Error("Something unexpected happened");
   }
 
   const now = new Date();
 
   if (refreshToken.expiresAt < now) {
-    throw new Error("Refresh Token Expired - please login again");
+    throw new UnauthorizedError("Token Expired");
   }
 
   const accessToken = generateAccessToken(decoded.userId, decoded.role);
@@ -146,7 +147,7 @@ export const logoutUser = async (token: string) => {
   });
 
   if (!refreshToken) {
-    throw new Error("Token not found");
+    throw new Error("Something unexpected happened");
   }
 
   await prisma.refreshToken.delete({

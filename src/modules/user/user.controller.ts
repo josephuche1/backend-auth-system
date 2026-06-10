@@ -1,9 +1,9 @@
 import { Response, Request } from "express";
 import prisma from "../../config/db";
 import { AuthRequest } from "../../middleware/auth.middleware";
+import { asyncHandler } from "../../utils/asyncHandler";
 
-export const getMe = async (req: AuthRequest, res: Response) => {
-  try {
+export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.userId) {
       return res.status(401).json({
         message: "Unauthorized",
@@ -27,13 +27,10 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     }
 
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+})
 
-export const getAllUsers = async (req: Request, res: Response) => {
+export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await prisma.user.findMany();
 
   res.json(users);
-}
+})
