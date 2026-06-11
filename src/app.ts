@@ -24,6 +24,26 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(errorHandler);
 
 
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Health check
+ *     description: Returns a simple message confirming the API is running. No authentication required.
+ *     responses:
+ *       200:
+ *         description: API is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Backend API running 🚀
+ */
 app.get("/", (req, res) => {
   res.json({ message: "Backend API running 🚀" });
 });
