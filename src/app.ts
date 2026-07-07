@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import dotenv from "dotenv";
 import authRoutes from "./modules/auth/auth.routes";
 import userRoutes from "./modules/user/user.routes";
@@ -11,6 +12,14 @@ import { logger } from "./middleware/logger.middleware";
 dotenv.config();
 
 const app = express();
+
+// Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+// CSP is disabled because Swagger UI at /docs needs inline scripts/styles
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
 app.use(cors());
 app.use(express.json());
