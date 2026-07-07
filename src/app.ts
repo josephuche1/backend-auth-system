@@ -13,6 +13,10 @@ dotenv.config();
 
 const app = express();
 
+// Render (and most hosts) sit behind a reverse proxy that sets X-Forwarded-For.
+// Required for express-rate-limit to identify client IPs correctly.
+app.set("trust proxy", 1);
+
 // Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
 // CSP is disabled because Swagger UI at /docs needs inline scripts/styles
 app.use(
