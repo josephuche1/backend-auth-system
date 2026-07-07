@@ -2,7 +2,7 @@
 
 A production-style REST API for user authentication and role-based access control, built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and **PostgreSQL**.
 
-Features include JWT access/refresh tokens, bcrypt password hashing, request validation (Zod), rate limiting on auth endpoints, structured error handling, and interactive API documentation via Swagger UI.
+Features include JWT access/refresh tokens, bcrypt password hashing, request validation (Zod), rate limiting on auth endpoints, HTTP security headers (Helmet), database seeding, structured error handling, and interactive API documentation via Swagger UI.
 
 ---
 
@@ -15,7 +15,9 @@ Features include JWT access/refresh tokens, bcrypt password hashing, request val
 *   [Getting started](#getting-started)
 *   [Environment variables](#environment-variables)
 *   [Database setup](#database-setup)
+*   [Database seeding](#database-seeding)
 *   [Running the app](#running-the-app)
+*   [Security headers (Helmet)](#security-headers-helmet)
 *   [Docker](#docker)
 *   [API documentation](#api-documentation)
 *   [API reference](#api-reference)
@@ -33,6 +35,8 @@ Features include JWT access/refresh tokens, bcrypt password hashing, request val
 *   **Protected routes** via Bearer token middleware
 *   **Rate limiting** on `/auth/register` and `/auth/login` (10 requests / 15 min per IP)
 *   **Input validation** with Zod schemas
+*   **HTTP security headers** via Helmet (`X-Frame-Options`, `X-Content-Type-Options`, etc.)
+*   **Database seeding** with default admin and test user accounts
 *   **Swagger UI** at `/docs` for interactive API exploration
 *   **Docker** support for containerized development and deployment
 
@@ -50,6 +54,7 @@ Features include JWT access/refresh tokens, bcrypt password hashing, request val
 | Auth | JSON Web Tokens (jsonwebtoken) |
 | Hashing | bcrypt |
 | Validation | Zod |
+| Security | Helmet |
 | Docs | swagger-jsdoc + swagger-ui-express |
 
 ---
@@ -60,6 +65,7 @@ Features include JWT access/refresh tokens, bcrypt password hashing, request val
 backend-auth-system/
 ├── prisma/
 │   ├── schema.prisma          # Database models (User, RefreshToken)
+│   ├── seed.ts                # Seed script (admin + test user)
 │   └── migrations/            # Prisma migration history
 ├── src/
 │   ├── app.ts                 # Express app setup, routes, Swagger
@@ -120,7 +126,17 @@ npx prisma migrate deploy
 npx prisma generate
 ```
 
-### 4\. Start the development server
+### 4\. Seed the database (optional)
+
+Populate the database with default test users:
+
+```
+npm run db:seed
+```
+
+See [Database seeding](#database-seeding) for credentials.
+
+### 5\. Start the development server
 
 ```
 npm run dev
@@ -175,6 +191,48 @@ npx prisma studio
 
 ---
 
+## Database seeding
+
+The seed script (`prisma/seed.ts`) creates two test users with bcrypt-hashed passwords. It uses `upsert`, so you can run it multiple times without duplicate errors.
+
+### Run the seed
+
+```
+npm run db:seed
+```
+
+Or directly:
+
+```
+npx prisma db seed
+```
+
+The seed command is configured in `prisma.config.ts` under `migrations.seed`.
+
+### Default test accounts
+
+| Email | Password | Role | Use case |
+| --- | --- | --- | --- |
+| `admin@example.com` | `Admin123!` | admin | Test admin-only routes (`GET /users/users`) |
+| `user@example.com` | `User123!` | user | Test standard authenticated routes (`GET /users/me`) |
+
+### Example: log in as admin
+
+```
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "Admin123!"
+  }'
+```
+
+Use the returned `accessToken` in the `Authorization: Bearer <token>` header for protected routes.
+
+> **Note:** These credentials are for local development and testing only. Do not use them in production.
+
+---
+
 ## Running the app
 
 ### Development (with hot reload)
@@ -194,6 +252,33 @@ curl http://localhost:3000/
 ```
 { "message": "Backend API running 🚀" }
 ```
+
+---
+
+## Security headers (Helmet)
+
+[Helmet](https://helmetjs.github.io/) sets HTTP security headers on every response. It is configured in `src/app.ts` and runs before all routes.
+
+Headers added include:
+
+| Header | Purpose |
+| --- | --- |
+| `X-Content-Type-Options: nosniff` | Prevents MIME-type sniffing |
+| `X-Frame-Options: SAMEORIGIN` | Protects against clickjacking |
+| `Referrer-Policy` | Controls referrer information |
+| `Cross-Origin-Opener-Policy` | Isolates browsing context |
+
+Content Security Policy (CSP) is disabled because Swagger UI at `/docs` requires inline scripts and styles.
+
+### Verify with curl or Postman
+
+Send any request (e.g. `GET /`) and inspect the **response headers**:
+
+```
+curl -I http://localhost:3000/
+```
+
+You should see `X-Content-Type-Options`, `X-Frame-Options`, and other Helmet headers in the response.
 
 ---
 
@@ -223,6 +308,12 @@ docker run -p 3000:3000 \
 ```
 
 > `.env` is listed in `.dockerignore` and is **not** copied into the image. Use `--env-file` or `-e` flags to inject secrets at runtime.
+
+After code or dependency changes, rebuild the image before running a new container:
+
+```
+docker build -t auth-api .
+```
 
 ---
 
@@ -390,6 +481,7 @@ Most errors follow this shape:
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start dev server with nodemon + ts-node |
+| `npm run db:seed` | Seed database with test users |
 | `npm test` | Placeholder (no tests configured yet) |
 
 ### Useful Prisma commands
@@ -399,6 +491,7 @@ Most errors follow this shape:
 | `npx prisma migrate dev` | Apply migrations (development) |
 | `npx prisma migrate deploy` | Apply migrations (production) |
 | `npx prisma generate` | Regenerate Prisma Client |
+| `npx prisma db seed` | Run the database seed script |
 | `npx prisma studio` | Open database GUI |
 
 ---
